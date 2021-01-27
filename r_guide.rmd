@@ -1,0 +1,366 @@
+---
+title: "r_guide"
+output: 
+  html_document:
+      toc: true
+      toc_depth: 4
+      toc_float: 
+        collapsed: true
+        smooth_scroll: true
+author: "RA"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+set collapsed: true before this is all over 
+false
+true
+
+
+```{r package_list}
+library(knitr)
+library(readr)
+library(readxl)
+library(data.table)
+```
+
+
+# Introduction to R
+
+## Data Types
+
+There are a few foundational data types in R. 
+
+```{r data_types,echo=F} 
+data_types <- c('text','integer','decimal','binary','category','date')
+names_in_R <- c('character','integer','numeric or dbl', 'logical', 'factor', 'Date (viz, capitalized)')
+kable(data.frame(data_types,names_in_R),col.names = c('Data Type', 'Name in R'))
+```
+
+From these, we have vectors, lists, matrices, and dataframes. 
+
+### Vectors 
+Vectors are created by the function `c()`. They can be named with the `names()` function, and can be accessed/subsetted in a variety of ways:
+
+(note `vector[integer:integer])` will subset a vector, using 1 based indexing and is inclusive:inclusive)
+
+```{r vectors}
+# create a vector
+months <- c('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov', 'Dec')
+months
+# name a vector
+names(months) <- c('January','Feburary','March','April','May','June','July','August','September','October','November','December')
+months
+# subset a vector, get the third entry
+months[3]
+# get the first three entries 
+months[1:3]
+# get the first three entries, using names
+months[c('January','Feburary','March')]
+# get the first three entries using a Boolean mask 
+months[c(T,T,T,F,F,F,F,F,F,F,F,F)]
+```
+
+TODO add that vec[order(vec)] sorts a vector 
+
+### Lists
+Lists can be created with `list()` and `names()` works just as it does with vectors above. The `unlist()` function will turn a list into a vector, and the function `as.list()` will turn a vector into a list. If you have a list of lists, then double bracket notation, e.g. `list_name[[integer]]`, will facilitate subsetting. 
+
+TODO talk about appending, removing, combining for lists and vectors 
+
+### Matrix 
+The `matrix()` function will create a matrix. The function will accept a vector of vectors, or a single vector or single list with dimensions. Use arguments `nrow=` and `ncol=` to control the dimensions. The argument `dimnames=` will allow you to add names, and the `byrow` argument, which is false by default, allows you to control TODO 
+
+The following lines are all equivalent ways to make the same matrix. 
+```{r matrix_creation,eval=F} 
+matrix(c(c(1,2,3),c(4,5,6),c(7,8,9)), nrow=3,ncol=3)
+matrix(c(1,2,3,4,5,6,7,8,9), nrow=3,ncol=3)
+matrix(list(1,2,3,4,5,6,7,8,9), nrow=3,ncol=3)
+matrix(c(list(1,2,3),list(4,5,6),list(7,8,9)),nrow=3,ncol=3)
+matrix(c(c(1,2,3),c(4,5,6),c(7,8,9)), nrow=3,ncol=3)
+```
+
+Now let's take that matrix, assign it to the variable `test_matrix`, and give it row and column names. 
+
+```{r matrix_demonstration} 
+test_matrix <- matrix(c(c(1,2,3),c(4,5,6),c(7,8,9)), nrow=3,ncol=3)
+colnames(test_matrix) <- c('col1','col2','col3')
+rownames(test_matrix) <- c('row1','row2','row3')
+test_matrix
+```
+
+### Dataframes 
+
+Dataframes are the backbone of R, and can be created via the `data.frame()` function. When you read a file into R (see Importing Data section), it is generally read in as a dataframe. The Data Manipulation section deals entirely with dataframes. A few basic functions:
+
+`head(x)`, where x is an integer, will display the first x rows of a dataframe. If x is omitted, the function will display the first 5. 
+
+TODO intro class() and typeof() somewhere 
+
+
+## Basics 
+
+First, the absolute basics. The arithmetic operators work exactly as you expect: `+` for addition, `-` for subtraction, `*` for multiplication, `/` for division, `^` for exponentiation, and `%%` for modulus. `TRUE`, or equivalently `T`, and `FALSE`, or equivalently `F` for Booleans.  We have `<-` as an assignment operator.
+
+### Set Operations
+
+TODO union() intersect() setdiff() setequal() is.element(element,set) 
+
+### Conditionals and Control Flow 
+
+#### Relational Operators 
+TODO == != < > <= >= & | ! and or not 
+Note that && is different from &. & works elementwise, but a double only examines the first element of each vector. Similar with double or ||. Be careful to use just the first one 
+
+#### Control Flow 
+if(condition) {...} else if(condition2) { ... } else 
+short circuits as soon as a condition evaluates to true 
+
+for(var in seq) { ... } 
+break: abandons a loop altogether, next skips immediately to the next loop 
+
+while(condition) { ...}
+
+
+## File Path Management {#file_path_mgmt}
+First, a few basics. To set working directory in R, use `setwd()` and then a filepath. To get your current working directory, use `getwd()`. It might be desirable to make certain aspects of your code less dependent on your current machine (e.g., differences in Mac/PC file path conventions). This can be accomplished with `filepath()`. For example, `filepath('~','example_folder','example_file')` will return the filepath that moves from the home directory, to example_folder, to example_file regardless of the machine. The function `dir()` will show you the files in your current directory. 
+
+If you prefer point and click, look at the bottom right pane of Rstudio, click files, and navigate to where you want to set the working directory. Then click more (gears icon) and click set as working directory. More also has a go to working directory feature. Finally, if you save the .rmd file in the same folder/directory as the data you want to load in, you can avoid adjusting the filepath. 
+
+## Packages
+Run `install.package('package_name')` to install a package (you only have to do this once). At the beginning of each R session, run `library(package_name)` to load the package for that session. 
+TODO how to update
+TODO r version and update
+
+TODO clarify this i snly for wickham 
+If you prefer the development version rather than the (above) CRAN approach, you can run 
+```{r eval=F}
+# example that odwnloads development version of readxl from gitbu
+install.packages("devtools")
+devtools::install_github("tidyverse/readxl")
+```
+
+## Helpful Function Tools
+The `args()` function is fantastic, not only for exploring new functions but also for reminding yourself of the specific spellings/implementations. Just run `args(function_name)` and it returns the arguments to that function. E.g. `args(read.table)` helps you remember whether the delimiter argument is called delim= or sep=, etc. 
+<br/>
+Running `?function_name` will pull up helpful documentation. 
+
+
+## Misc
+things that I find super useful that don't fit in any section
+
+# Importing Data
+
+We'll go through all three in order, but here is a summary table
+```{r comparing_packages,echo=F} 
+labels <- c('package:', 'for csv or general delimiters:','for excel:','argument to adjust column names:', 'argument to adjust column types:','speed:','key advantages:')
+base <- c('utils (loaded automatically)', 'read.csv(), read.tsv(), read.delim()','no counterpart','header','colClasses','','')
+tidy <- c('readr and readxl', 'read_csv(),read_tsv(), read_delim()','read_excel()','col_names','col_types','10x faster than base','consistent naming conventions across tidyverse, outputs a tibble, plays nicely with other popular tidyverse packages')
+fread <- c('data.table', 'fread()','fread()','col.names','colClasses (supply an unnamed vector of types TODO elaboratE)','2x faster than tidy, 20x faster than base','parser guesses the delimiter, whether the file has a header, and how many lines to skip, incredibly fast/well parallelized, and just one function for all your importing needs')
+
+kable(data.frame(labels, base,tidy,fread),col.names = c('Category', 'Base R', 'Tidyverse','Data.Table'))
+```
+
+
+## Base R
+Importing data usually requires working with paths - more about that [here](#file_path_mgmt). \\
+The `utils` package is loaded by default and contains a few functions we can use for importing data. The main function is `read.table()`, but it is more common to use `read.csv()` and `read.delim()` which are wrapper functions (around `read.table()`) which are used for csvs and tab delimted files, respectively. 
+
+The syntax is as follows, with default arguments shown. 
+`read.csv("file.path in quotes", header=T, sep=",", ...)`
+`read.delim("file.path in quotes", header=T, sep="\t", ...)`
+`read.table("file.path in quotes", header=F, sep=, row.names, col.names, colClasses=,stringsAsFactors=,...)`
+
+## Hadley Wickham's Suite
+[Hadley Wickham](http://hadley.nz/ "Hadley Wickham's personal website")'s contributions to R - all of which are open source - could not possibly be overstated -- he developed the [Tidyverse](https://www.tidyverse.org/) ecosystem, which includes TODO Link to this website ggplot2 for visualizing data, dplyr for manipulating data, tidyr for tidying data, stringr for working with strings, and lubridate for working with dates/times. He also developed a suite of tools for importing data, discussed here, as well as software engineering tools. I draw on his work and his examples throughout this page and am beyond grateful for his contributions. Anyone who could benefit from this page could benefit more from his website and extensive - free - book collection. 
+
+As a quick sidenote, I recommend running `install.packages("tidyverse")` if you want the whole tidyverse suite. However, you cannot run `library(tidyverse)` and will still need to load packages individually. 
+
+### Readr for .csv and fwf files {#readr}
+
+[Wickham's cheatsheet](https://github.com/rstudio/cheatsheets/blob/master/data-import.pdf) <br/>
+Readr supports 7 file formats:
+
+```{r readr_functions,echo=F} 
+file_types <- c("comma separated files (CSV)", "tab separated files (tsv)", "general delimited files", "fixed width files (fwf)", "files where columns are separated by white space","web log files")
+functions <- c("read_csv()", "read_tsv()", "read_delim()", "read_fwf()", "read_table()", "read_log()") 
+kable(data.frame(functions,file_types),col.names = c('File Types', 'Function Name'))
+```
+
+It will often suffice to pass one of these functions a filepath. The function will then printout the column specifications, allowing you to confirm that that types were inferred correctly. If they were not, you can copy and paste the column specification printout, tweaking the columns accordingly, and pass the result back in to the next function call. For example, let's read in an example dataset. 
+
+```{r readr_example1} 
+mtcars <- read_csv(readr_example("mtcars.csv"))
+```
+Let's say that we actually want cyl to be a factor variable TODO LINK special data types and we want gear to be an integer. We could re-run the `read_csv()` call, this time passing in a second argument:
+
+```{r readr_example2}
+mtcars <- read_csv(readr_example("mtcars.csv"), col_types = 
+  cols(
+  mpg = col_double(),
+  cyl = col_factor(),
+  disp = col_double(),
+  hp = col_double(),
+  drat = col_double(),
+  wt = col_double(),
+  qsec = col_double(),
+  vs = col_double(),
+  am = col_double(),
+  gear = col_integer(),
+  carb = col_double()
+  )
+)
+```
+And now the data.frame has been created as we want. For reference, here is the full set of col_ functions used to specify column types:
+
+[source](https://readr.tidyverse.org/reference/cols.html)
+
+
+```{r col_-functions,echo=F} 
+functions <- c("col_logical()","col_integer()","col_double()","col_character()", "col_factor(levels,ordered)", "col_date(format=' ')","col_time(format = ' ')","col_datetime(format =' ')", "col_number()", "col_skip()", "col_guess()")
+description <- c('boolean','integers','doubles','everything else, strings','fixed set of values',"within the locale's date_format","within the locale's time_format",'ISO8601 date times', 'numbers containing the grouping_mark', 'do not import this column', 'take your best guess')
+string_abbreviation <- c('l','i','d','c','f','D','t','T','n','_ or -','?') 
+
+kable(data.frame(functions,description, string_abbreviation),col.names = c('File Types', 'Function Name','String Abbreviation'))
+```
+Two more notes: the filepath can be a url, and read_ functions have a `col_names =` which is true by default. If the first row is erroneously being interpreted as a column name, toggle that argument to off. <br/>
+
+
+Note readr also contains `read_..._chunked()` for reading `...` files in chunks rather than all at once. Also `read_csv2` to help with local numeric conventions (e.g., commas and decimals swapped).  
+
+### Readxl for .xls and .xlsx file
+Readxl is the leading package for reading excel files into R. The primary function, `read_excel()`, takes a file path as a string and outputs a dataframe. 
+
+Other functions: `excel_sheets()` will return a list of sheet names. The `sheet =` argument accepts either sheet names (as strings) or numbers. The `range =` argument takes Excel-style ranges, eg `read_excel(example_file, range="C1:E4"). The `n_max =` argument controls the maximum number of rows read in. You can also control the columns with, for example, `range = cell_cols("B:D")`. Finally, the range argument will even take excel style ranges with sheet names, eg `range = "sheet_name!B1:D5"`. <br/> 
+
+The `read_excel()` function will also allow you to specify what was used to signify missing values: by default, blank cells are interpreted as missing, but by setting, for example, `na = "n/a"` inside the read_excel call, read_excel will replace any n/a with missing rather than assume it is a character string. 
+
+In general, it is safe to assume that read_excel() syntax will be similiar to [readr function syntax](#readr) applies to readxl, e.g. there is a col_names argument, col_types argument, skip argument, n_max, progress, etc. 
+
+Do you want to read all the sheets in from an excel file at once? Try: `res_list <- lapply(excel_sheets('path'), read_excel, path='path')`. 
+### haven for SAS, SPSS, and STATA files
+The Haven package contains functions for reading SAS, SPSS, and STATA data types. 
+
+```{r haven,echo=F} 
+functions <- c('read_sas()', 'read_sav', 'read_dta')
+software <- c('SAS','SPSS','STATA')
+filetype <- c('.sas7bdat and .sas7bcat','.sav','.dta')
+notes <- c('read_xpt() reads SAS transport files, i.e. versions 5 and 8','read_por() reads the older .por files, write_sav writes .sav files','write_dta() writes .dta files()')
+kable(data.frame(functions,software, filetype,notes),col.names = c('Function Name', 'Software','File Types','Notes'))
+```
+
+
+### httr/rvest/xml2 
+for talking to web APIs/scraping websites/importing XML files 
+TODO low priority 
+
+## data.table's fread() 
+package: data.table, function: fread()  <br/>
+Whereas the Tidyverse is written to make sure that entire data science workflows play nicely together - importing data, cleaning and data manipulation, reporting, package design, etc - data.table is written to be as fast and memory efficient as possible: data.table's github boasts [benchmarking on a 1 billion row, 50 GB file](https://h2oai.github.io/db-benchmark/) and still reports the time in seconds. Data.table is also very impressively parallelized to use multiple cores/threads at once without any additional coding from the user. 
+
+
+<br/> 
+Those who prefer Python-style subsetting, eg df[row_operation, column_operation] may prefer data.table's approach to data manipulation as well. 
+
+The syntax has many, many options, so let me just say that `fread(filepath)` will often suffice. [full docs here](https://cran.r-project.org/web/packages/data.table/data.table.pdf) </br>
+
+- arguments 
+  - input (use exactly one of file=,text=,or cmd= . if none is provided, it will be inferred)
+  - file (filepath or url)
+  - cmd (A shell command that pre-processes the file; e.g. fread(cmd=paste("grep",word,"filename")))
+  - sep = "auto" (the separator between columns)
+  - sep2 = "auto" (separator within columns)
+  - nrows = (max number of rows to read )
+  - header ="auto" (is the first row of data column names)
+  - stringsAsFactors=F (force all strings to facotrs?)
+  - verbose = (do you want notes or to supress them)
+  - skip (want to skip any rows?)
+  - colClasses = 
+  - col.names=
+  - showProgress = 
+
+Syntax: `fread(path=,)` with optional arguments select (e.g. select=c(1,3) for the 1st and 3rd column), drop= which works similiarly, etc. 
+<br/>
+
+fread()
+https://www.rdocumentation.org/packages/data.table/versions/1.13.4/topics/fread
+
+## XLConnect Package
+This package is a well developed bridge between excel and R. It will not only read in excel data but also allow you to modify .xls and .xlsx files from R. 
+
+a quick summary of XLConnect functions:
+
+book_object <- loadWorkbook('path')
+getSheets(book_object)
+readWorksheet(book,sheet="sheet name",<...>)
+<optional arguments
+startRow=, endRow=,startCol=,endCol=,header=F
+createSheet(book,name=new_sheet")
+writeWorksheet(book,new_name,sheet=’new_sheet)
+saveWorkbook(book,file=”asdfsfda_v2.xlsx”)
+renameSheet(book,’oldname’,’newname’)
+removeSheet(book,sheet=”name”)
+saveWorkbook(book,file=”asdfasd.xlsx”)
+
+
+
+# Special Data Types 
+## Strings
+### Overview
+In R, \ is the escape character. The `writeLines()` function will print a string as its meaning, i.e. without escape characters. The `format()` function will change the way in which strings are displayed: \
+
+format(scientific=B, digits=n,trim=B, big.mark=",", big.interval=3) where B represents a boolean and n is an integer. \
+
+An alternative to format() is formatC(). Its format argument takes values 'f' for fixed, 'e' for scientific, and 'g' for fixed unless scientific will save space. The flag argument will allow you toa djust the formatting futher: flag="+" forces the display of the sign, ="-" left aligns the numbers, and ="0" pads the display with leading zeros. format(p_values,digits=2,format="g") might be a good option for p-values. \
+The `paste()` function combines multiple strings into one. It's `sep=` argument controls the delimited. If the second argument is a string and the first argument a vector, that string will be appended (prepended) to every vector:
+
+
+```{r paste_demo}
+tmp <- c('a','b','c')
+# append '_1' to every entry in tmp
+paste(tmp,'1',sep="_")
+# prepend '1_' to every entry in tmp
+paste('1',tmp,sep='_')
+```
+You can feed paste(...) to writeLines(...) to make a simple table. 
+
+### Primary String Library: stringR
+All 
+
+## Dates and Times
+## Categorical 
+
+
+# Data Manipulation
+## Dplyr Overview
+## Fread Overview 
+## Joining Data 
+### Dplyr Way
+### Fread Way
+### Base Way 
+### Wide to Long, Long to Wide 
+## Library Assertive
+
+
+# Graphics 
+## Ggplot
+## Interactive 
+
+
+# Regression
+## Linear
+## Logistic 
+## Predict Function
+## GAM, Trees, ...
+
+
+
+# Benchmarking 
+# Regex - The Godsend Way
+# ML Lite 
+# SQL Introduction
+# Webscraping
+# Shell
+
